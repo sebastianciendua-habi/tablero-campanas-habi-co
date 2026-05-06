@@ -1,0 +1,73 @@
+name: Actualizar datos BigQuery
+
+on:
+  schedule:
+    - cron: '0 13 * * *'  # 7:00 AM Colombia/México (UTC-5/UTC-6)
+  workflow_dispatch:       # Permite ejecutar manualmente
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Authenticate with user credentials
+        run: |
+          echo '${{ secrets.GCP_CREDENTIALS }}' > /tmp/adc.json
+          gcloud config set project ${{ secrets.GCP_PROJECT }}
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=/tmp/adc.json" >> $GITHUB_ENV
+          echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/adc.json" >> $GITHUB_ENV
+
+      - name: Query BigQuery
+        run: |
+          bq query --use_legacy_sql=false --format=json --max_rows=500000 < query.sql > /tmp/raw.json
+
+      - name: Build data.json
+        run: |
+          python3 -c "
+          import json, datetime
+          with open('/tmp/raw.json') as f:
+              raw = json.load(f)
+          def i(v): return int(v) if v is not None else 0
+          def fl(v): return float(v) if v is not None else 0.0
+          rows = [{
+              't':  r['tipo'],
+              'd':  r['dia'],
+              's':  int(r['fuente_id']) if r.get('fuente_id') is not None else None,
+              'p':  r.get('plataforma') or 'Otros',
+              'c':  r.get('campana') or '',
+              'cr': i(r.get('creados')),
+              'cl': i(r.get('calificados')),
+              'as': i(r.get('asignados')),
+              'ct': i(r.get('citas')),
+              'ci': i(r.get('cierres')),
+              'sp': fl(r.get('spend')),
+              'cl_l': i(r.get('clicks_link')),
+              'cl_t': i(r.get('clicks_totales')),
+              'im': i(r.get('impressions')),
+          } for r in raw]
+          payload = {
+              'generated': datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
+              'rows': rows
+          }
+          with open('data.json','w') as f:
+              json.dump(payload, f, separators=(',',':'))
+          print(f'Rows: {len(rows)}')
+          "
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          if git diff --staged --quiet; then
+            echo "Sin cambios"
+          else
+            git commit -m "Auto-update data.json $(date -u +%Y-%m-%d)"
+            git push
+          fi
