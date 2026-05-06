@@ -1,39 +1,52 @@
-# Tablero Performance Campañas — Habi Colombia
+# Tableros Marketing Habi
 
-Dashboard de performance de campañas paid media (Google, Facebook, etc.) con funnel completo + inversión + costos por etapa. Datos auto-actualizados diariamente desde BigQuery.
+Hub de dashboards de performance, funnel e inversión de marketing — datos auto-actualizados diariamente desde BigQuery a las 7:00 AM Colombia.
 
 **URL pública**: https://sebastianciendua-habi.github.io/tablero-campanas-habi-co/
 
-## Qué muestra
+## Tableros disponibles
 
-- **Funnel ON FECHA**: Impresiones → Clicks → Creados → Calificados → Asignados → Citas → Cierres
-- **Costos**: Inversión, CPM, CP Click, CP Lead, CP Calificado, CP Asignado, CP Cita, CP Cierre
-- **Tasas**: %CTR, %Click→Lead, %CR, %Tasa Asignación, %Cita, %Cierre
-- **Filtros**: Plataforma (Google/Facebook/Otros), Fuente (WEB/Estudio/LeadForms), campaña, granularidad (D/W/M), rango de fechas
-- **Gráfica mensual**: comparación de volumen del funnel mes a mes
+- **[performance-campanas-co/](performance-campanas-co/)** — Performance de campañas paid (Google, Facebook, etc.) Colombia. Funnel + inversión + costos por etapa. Filtros por plataforma, fuente y campaña.
 
-## Definiciones clave
+## Cómo agregar un tablero nuevo
 
-- **Calificado** = primera entrada a `state_id` 20 ó 63 (`fecha_primer_calificacion` en `tabla_inmuebles_general`)
-- **Filtro de Fuente** = sufijo del nombre de la campaña: `lfr`/`leadform` → Lead Forms · `hmt` → Estudio Inmueble · `web` → WEB
-- **Plataforma**: Facebook agrupa Facebook + Instagram (ambos Meta)
-- **Período**: desde 2024-01-01 hasta hoy
+1. Crear carpeta nueva al nivel raíz (ej. `nuevo-tablero/`) con 3 archivos:
+   - `query.sql` — la query de BigQuery
+   - `index.html` — el dashboard
+   - `data.json` — placeholder, se sobrescribe automáticamente
+2. Agregar **2 steps** en `.github/workflows/update-data.yml`:
+   - `Query — nuevo-tablero` (corre la query)
+   - `Process — nuevo-tablero` (transforma a JSON compacto)
+3. Agregar la carpeta al `git add` del step de commit del workflow.
+4. Agregar un `<a class="card">` al `index.html` raíz que linkee al nuevo tablero.
+
+Hay un comentario marcador (`↓↓↓ Agregar más tableros aquí ↓↓↓`) en el workflow que muestra exactamente dónde insertar los steps.
 
 ## Auto-update
 
-El workflow `.github/workflows/update-data.yml` corre cada día a las 7am Colombia (cron `0 13 * * *` UTC) y commitea el `data.json` actualizado. También se puede disparar manualmente desde Actions → Run workflow.
+- **Cron**: cada día a las `13:00 UTC` (7am Colombia / 6am México).
+- **Manual**: Actions → Run workflow.
+- **Secrets requeridos**:
+  - `GCP_CREDENTIALS`: JSON de Application Default Credentials con acceso a BigQuery.
+  - `GCP_PROJECT`: `papyrus-data` (proyecto de billing).
 
-### Secrets requeridos
-
-- `GCP_CREDENTIALS`: JSON de Application Default Credentials con acceso a BigQuery (proyectos `papyrus-data` y `sellers-main-prod`)
-- `GCP_PROJECT`: `papyrus-data` (proyecto de billing para el job)
-
-## Correr local
+Si las credenciales expiran (cambio de password, política de Workspace), regenerar:
 
 ```bash
-# Requiere bq CLI autenticado y python3
-bq query --use_legacy_sql=false --format=json --max_rows=500000 < query.sql > /tmp/raw.json
-# (procesar a data.json igual que el workflow)
-python3 -m http.server 8765
-open http://localhost:8765/
+gcloud auth application-default login
+cat ~/.config/gcloud/application_default_credentials.json   # copiar y actualizar el secret en GitHub
+```
+
+## Estructura del repo
+
+```
+.
+├── index.html                   # Hub que lista los tableros
+├── README.md
+├── .github/workflows/update-data.yml
+│
+└── performance-campanas-co/     # Tablero #1
+    ├── index.html
+    ├── query.sql
+    └── data.json
 ```

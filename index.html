@@ -4,759 +4,91 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
-<title>Performance Campañas — Colombia</title>
+<title>Tableros Marketing Habi — Sebastián Ciendua</title>
 <style>
   :root {
-    --bg: #0f172a; --card: #1e293b; --card-hover: #263348;
-    --border: #334155; --border-strong: #4b5563; --row-border: #283548;
-    --text: #e2e8f0; --text-title: #f8fafc;
-    --text-muted: #cbd5e1; --text-muted-2: #94a3b8; --text-muted-3: #64748b;
-    --accent: #818cf8; --accent-on: #f8fafc;
-    --google: #fbbf24; --facebook: #38bdf8; --otros: #94a3b8;
-    --row-total: #1a2744;
-    --bar-high: #f87171; --bar-med: #fbbf24; --bar-low: #34d399;
-    --group-vol: #1e2942; --group-rate: #1d2735; --group-cost: #2a1d35;
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-hover: #1e2942;
+    --border: #334155;
+    --text-title: #f8fafc;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-muted-2: #64748b;
+    --accent: #818cf8;
   }
   body.light {
-    --bg: #f5f7fa; --card: #ffffff; --card-hover: #f1f5f9;
-    --border: #e2e8f0; --border-strong: #cbd5e1; --row-border: #f1f5f9;
-    --text: #334155; --text-title: #0f172a;
-    --text-muted: #475569; --text-muted-2: #64748b; --text-muted-3: #94a3b8;
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --card-hover: #eef2ff;
+    --border: #e2e8f0;
+    --text-title: #0f172a;
+    --text: #334155;
+    --text-muted: #64748b;
+    --text-muted-2: #94a3b8;
     --accent: #6366f1;
-    --google: #d97706; --facebook: #0284c7; --otros: #64748b;
-    --row-total: #eef2ff;
-    --bar-high: #dc2626; --bar-med: #d97706; --bar-low: #059669;
-    --group-vol: #eff6ff; --group-rate: #f0f9ff; --group-cost: #fdf2f8;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; transition: background 0.2s, color 0.2s; }
-  .back-link { display: inline-block; color: var(--text-muted-2); text-decoration: none; font-size: 13px; margin-bottom: 12px; padding: 4px 10px; border-radius: 6px; }
-  .back-link:hover { background: var(--card); color: var(--accent); }
-  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 12px; }
-  .header h1 { font-size: 22px; font-weight: 600; color: var(--text-title); }
-  .header h1 span.co { color: var(--accent); }
-  .header .right { font-size: 13px; color: var(--text-muted-3); display: flex; align-items: center; gap: 10px; }
-  .theme-btn { background: var(--card); border: 1px solid var(--border); color: var(--text-muted-2); border-radius: 6px; padding: 4px 10px; font-size: 14px; cursor: pointer; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 48px 24px; transition: background 0.2s, color 0.2s; }
+  .theme-btn { position: fixed; top: 20px; right: 24px; background: var(--card); border: 1px solid var(--border); color: var(--text-muted); border-radius: 6px; padding: 4px 10px; font-size: 14px; cursor: pointer; transition: background 0.15s, color 0.15s; z-index: 10; }
   .theme-btn:hover { color: var(--accent); }
-  .subtitle { font-size: 13px; color: var(--text-muted-3); margin-bottom: 20px; }
-  .subtitle code { background: var(--card); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+  .header { text-align: center; margin-bottom: 48px; max-width: 720px; }
+  .header h1 { font-size: 32px; font-weight: 600; color: var(--text-title); margin-bottom: 12px; }
+  .header h1 span { color: var(--accent); }
+  .header p { font-size: 15px; color: var(--text-muted); line-height: 1.5; }
 
-  .controls-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin-bottom: 18px; }
-  .controls-row { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end; }
-  .control-group { display: flex; flex-direction: column; gap: 6px; }
-  .control-label { font-size: 10px; color: var(--text-muted-2); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-  .pill-group { display: inline-flex; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
-  body.light .pill-group { background: #f5f7fa; }
-  .pill { padding: 6px 12px; font-size: 12px; color: var(--text-muted-2); cursor: pointer; border: none; background: transparent; transition: background 0.15s, color 0.15s; }
-  .pill:hover { background: var(--card-hover); color: var(--text); }
-  .pill.active { background: var(--accent); color: var(--accent-on); font-weight: 600; }
-  .pill + .pill { border-left: 1px solid var(--border); }
-  .pill.plat-google.active { background: var(--google); }
-  .pill.plat-facebook.active { background: var(--facebook); }
-  .pill.plat-otros.active { background: var(--otros); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; max-width: 960px; width: 100%; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; text-decoration: none; color: inherit; transition: transform 0.15s, border-color 0.15s, background 0.15s; display: flex; flex-direction: column; gap: 8px; }
+  .card:hover { transform: translateY(-1px); border-color: var(--accent); background: var(--card-hover); }
+  .card h2 { font-size: 16px; color: var(--text-title); font-weight: 600; line-height: 1.3; }
+  .card h2 .country { color: var(--accent); font-weight: 700; margin-right: 8px; font-size: 13px; }
+  .card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  .card .stack { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+  .card .tag { background: var(--bg); border: 1px solid var(--border); color: var(--text-muted-2); font-size: 10px; padding: 2px 7px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+  body.light .card .tag { background: #f1f5f9; }
 
-  input[type="date"], input[type="text"] {
-    background: var(--bg); border: 1px solid var(--border); color: var(--text);
-    border-radius: 7px; padding: 6px 10px; font-size: 13px; font-family: inherit;
-  }
-  body.light input[type="date"], body.light input[type="text"] { background: #fff; }
-  input[type="text"] { width: 220px; }
-  input::placeholder { color: var(--text-muted-3); }
-  input:focus { outline: none; border-color: var(--accent); }
-
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; margin-bottom: 22px; }
-  .kpi.cost { border-left: 3px solid var(--bar-med); }
-  .kpi { background: var(--card); border-radius: 9px; padding: 12px 14px; border: 1px solid var(--border); }
-  .kpi .label { font-size: 10px; color: var(--text-muted-2); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; font-weight: 600; }
-  .kpi .value { font-size: 19px; font-weight: 700; color: var(--text-title); line-height: 1.1; }
-  .kpi .sub { font-size: 11px; color: var(--text-muted-3); margin-top: 3px; }
-
-  .tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
-  .tab { padding: 8px 16px; font-size: 13px; color: var(--text-muted-2); cursor: pointer; border: none; background: transparent; border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; font-weight: 500; }
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
-
-  .table-card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
-  thead th {
-    background: var(--border); color: var(--text-muted-2);
-    font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 0.4px;
-    padding: 9px 8px; text-align: right; white-space: nowrap; position: sticky; top: 0; z-index: 2;
-  }
-  thead th.sticky-col { left: 0; z-index: 3; text-align: left; padding-left: 14px; min-width: 360px; }
-  thead th.group-vol { background: var(--group-vol); }
-  thead th.group-rate { background: var(--group-rate); }
-  thead th.group-cost { background: var(--group-cost); }
-  thead tr.group-header th { font-size: 9px; padding: 6px 8px; color: var(--text-muted-3); border-bottom: 1px solid var(--border-strong); text-align: center; }
-  tbody td { padding: 8px 8px; text-align: right; border-top: 1px solid var(--row-border); white-space: nowrap; }
-  tbody td.sticky-col { text-align: left; padding-left: 14px; font-weight: 500; color: var(--text-muted); position: sticky; left: 0; background: var(--card); z-index: 1; min-width: 360px; }
-  tbody tr:hover td { background: var(--card-hover); }
-  tbody tr:hover td.sticky-col { background: var(--card-hover); }
-  tbody td.group-vol { background: var(--group-vol); }
-  tbody td.group-rate { background: var(--group-rate); }
-  tbody td.group-cost { background: var(--group-cost); }
-  tbody tr:hover td.group-vol { background: color-mix(in srgb, var(--group-vol) 70%, var(--card-hover)); }
-  tbody tr:hover td.group-rate { background: color-mix(in srgb, var(--group-rate) 70%, var(--card-hover)); }
-  tbody tr:hover td.group-cost { background: color-mix(in srgb, var(--group-cost) 70%, var(--card-hover)); }
-  tbody tr.totals td { background: var(--row-total) !important; font-weight: 700; color: var(--text-title); border-top: 2px solid var(--border-strong); }
-  td.zero, td.na { color: var(--text-muted-3); }
-  .plat-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 9px; font-weight: 700; margin-right: 5px; vertical-align: middle; }
-  .plat-tag.google { background: var(--google); color: white; }
-  .plat-tag.facebook { background: var(--facebook); color: white; }
-  .plat-tag.otros { background: var(--otros); color: white; }
-
-  .empty { padding: 40px; text-align: center; color: var(--text-muted-3); font-size: 13px; }
-
-  .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
-  .chart-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; }
-  .chart-title { font-size: 13px; font-weight: 600; color: var(--text-title); }
-  .chart-legend { display: flex; flex-wrap: wrap; gap: 12px; }
-  .legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); cursor: pointer; user-select: none; padding: 2px 4px; border-radius: 4px; transition: opacity 0.15s; }
-  .legend-item.muted { opacity: 0.35; }
-  .legend-item:hover { color: var(--text-title); }
-  .swatch { display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
-  .swatch.line { width: 18px; }
-  .swatch.bar  { width: 14px; height: 10px; background: var(--text-muted-3); opacity: 0.6; }
-  .swatch.cierre-line { background: #f472b6; }
-  .chart-wrap { position: relative; width: 100%; }
-  svg.chart, #chartFunnel, #chartSpend { display: block; width: 100%; height: 280px; }
-  .chart-grid { stroke: var(--border); stroke-width: 1; opacity: 0.5; }
-  .chart-axis { stroke: var(--border-strong); stroke-width: 1; }
-  .chart-axis-text { fill: var(--text-muted-3); font-size: 10px; font-family: 'Segoe UI', system-ui, sans-serif; }
-  .chart-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-  .chart-dot { stroke: var(--card); stroke-width: 1.5; cursor: pointer; }
-  .chart-bar { fill: var(--text-muted-3); opacity: 0.55; cursor: pointer; transition: opacity 0.1s; }
-  .chart-bar:hover { opacity: 0.9; }
-  .chart-hover-rect { fill: transparent; cursor: crosshair; }
-  .chart-tooltip {
-    position: absolute; background: var(--bg); border: 1px solid var(--border-strong);
-    border-radius: 6px; padding: 8px 10px; font-size: 11.5px; pointer-events: none;
-    opacity: 0; transition: opacity 0.1s; z-index: 5; min-width: 130px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-  }
-  body.light .chart-tooltip { background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-  .chart-tooltip .tt-title { font-weight: 600; color: var(--text-title); margin-bottom: 4px; font-size: 11px; }
-  .chart-tooltip .tt-row { display: flex; justify-content: space-between; gap: 14px; padding: 1px 0; }
-  .chart-tooltip .tt-row .tt-label { color: var(--text-muted-2); display: flex; align-items: center; gap: 5px; }
-  .chart-tooltip .tt-row .tt-val { color: var(--text-title); font-weight: 500; font-variant-numeric: tabular-nums; }
-  .chart-tooltip .tt-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-  .footer-info { margin-top: 10px; padding: 0 4px; font-size: 11px; color: var(--text-muted-3); }
-
-  @media (max-width: 1280px) { .kpis { grid-template-columns: repeat(4, 1fr); } }
-  @media (max-width: 700px)  { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  footer { margin-top: 48px; font-size: 12px; color: var(--text-muted-2); text-align: center; }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
 </style>
-</head>
-<body>
-<div class="header">
-  <h1>Performance Campañas — <span class="co">Colombia</span></h1>
-  <div class="right">
-    <span id="lastUpdate"></span>
-    <button type="button" class="theme-btn" id="themeToggle" onclick="toggleTheme()" aria-label="Cambiar tema">🌙</button>
-  </div>
-</div>
-<div class="subtitle">
-  Funnel "ON FECHA" + inversión paid media · Calificado = primera vez en estado <code>20</code> ó <code>63</code> · Fuentes: WEB (3), Estudio Inmueble (7), Lead Forms (47).
-</div>
-
-<div class="controls-card">
-  <div class="controls-row">
-    <div class="control-group">
-      <div class="control-label">Granularidad</div>
-      <div class="pill-group" id="granPills">
-        <button type="button" class="pill" data-gran="D">Día</button>
-        <button type="button" class="pill" data-gran="W">Semana</button>
-        <button type="button" class="pill active" data-gran="M">Mes</button>
-      </div>
-    </div>
-
-    <div class="control-group">
-      <div class="control-label">Plataforma</div>
-      <div class="pill-group" id="platPills">
-        <button type="button" class="pill active" data-plat="ALL">Todas</button>
-        <button type="button" class="pill plat-google" data-plat="Google">Google</button>
-        <button type="button" class="pill plat-facebook" data-plat="Facebook">Facebook</button>
-        <button type="button" class="pill plat-otros" data-plat="Otros">Otros</button>
-      </div>
-    </div>
-
-    <div class="control-group">
-      <div class="control-label">Fuente</div>
-      <div class="pill-group" id="srcPills">
-        <button type="button" class="pill active" data-src="ALL">Todas</button>
-        <button type="button" class="pill" data-src="3">WEB</button>
-        <button type="button" class="pill" data-src="7">Estudio</button>
-        <button type="button" class="pill" data-src="47">Lead Forms</button>
-      </div>
-    </div>
-
-    <div class="control-group">
-      <div class="control-label">Desde</div>
-      <input type="date" id="dateFrom">
-    </div>
-    <div class="control-group">
-      <div class="control-label">Hasta</div>
-      <input type="date" id="dateTo">
-    </div>
-    <div class="control-group">
-      <div class="control-label">Buscar campaña</div>
-      <input type="text" id="searchCamp" placeholder="filtra por nombre…">
-    </div>
-  </div>
-</div>
-
-<div class="kpis" id="kpis"></div>
-
-<div class="chart-card">
-  <div class="chart-head">
-    <div class="chart-title">Volumen del funnel — comparación mensual</div>
-    <div class="chart-legend" id="chartLegend"></div>
-  </div>
-  <div class="chart-wrap">
-    <svg id="chartFunnel" preserveAspectRatio="none"></svg>
-    <div class="chart-tooltip" id="chartTooltip"></div>
-  </div>
-</div>
-
-<div class="tabs" style="margin-top:24px;">
-  <button type="button" class="tab active" data-view="campaign">Por Campaña</button>
-  <button type="button" class="tab" data-view="period">Serie de Tiempo</button>
-</div>
-
-<div class="table-card">
-  <div class="table-wrap" id="tableWrap">
-    <table id="mainTable"></table>
-  </div>
-</div>
-
-<div class="footer-info">
-  Filtro de Fuente: matchea el sufijo del nombre de la campaña (<code>lfr</code>/<code>leadform</code> → Lead Forms · <code>hmt</code> → Estudio · <code>web</code> → WEB). Volumen sin spend = orgánico/direct/sin tagging UTM.
-</div>
-
 <script>
   function toggleTheme() {
     const isLight = document.body.classList.toggle('light');
     localStorage.setItem('tablero-theme', isLight ? 'light' : 'dark');
     document.getElementById('themeToggle').textContent = isLight ? '☀️' : '🌙';
   }
+</script>
+</head>
+<body>
+  <button type="button" class="theme-btn" id="themeToggle" onclick="toggleTheme()" aria-label="Cambiar tema">🌙</button>
+  <div class="header">
+    <h1>Tableros <span>Marketing Habi</span></h1>
+    <p>Dashboards de performance, funnel e inversión — actualización diaria desde BigQuery.</p>
+  </div>
+
+  <div class="grid">
+    <a class="card" href="performance-campanas-co/">
+      <h2><span class="country">CO</span>Performance Campañas Paid</h2>
+      <p>Funnel + inversión por campaña Google/Facebook: impresiones, clicks, leads, asignados, cierres y costos por etapa. Filtros por plataforma, fuente, campaña y período.</p>
+      <div class="stack">
+        <span class="tag">Google</span>
+        <span class="tag">Facebook</span>
+        <span class="tag">CPL · CPLA · CPCierre</span>
+      </div>
+    </a>
+  </div>
+
+  <footer>
+    Datos auto-actualizados a las 7:00 AM Colombia ·
+    <a href="https://github.com/sebastianciendua-habi/tablero-campanas-habi-co" target="_blank">Ver código en GitHub</a>
+  </footer>
+<script>
+  // Init theme from localStorage (default: light)
   (function(){
     const saved = localStorage.getItem('tablero-theme');
     if (saved !== 'dark') document.body.classList.add('light');
     document.getElementById('themeToggle').textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
   })();
-
-  // ── Estado de filtros
-  const state = {
-    gran: 'M',
-    plat: 'ALL',
-    src: 'ALL',
-    dateFrom: null,
-    dateTo: null,
-    search: '',
-    view: 'campaign'
-  };
-
-  const SRC_LABEL = { 3: 'WEB', 7: 'Estudio Inmueble', 47: 'Lead Forms' };
-
-  // Filtro de fuente basado en sufijo del nombre de la campaña.
-  // Convención Habi: lfr/leadform → Lead Forms, hmt → Estudio Inmueble, web → WEB.
-  // Si una campaña tiene varios códigos, gana el más específico (lfr > hmt > web).
-  const RX_LFR = /(^|[-_])(lfr|leadform)([-_]|$)/i;
-  const RX_HMT = /(^|[-_])hmt([-_]|$)/i;
-  const RX_WEB = /(^|[-_])web([-_]|$)/i;
-  function matchSrc(camp, src) {
-    if (src === 'ALL') return true;
-    const c = camp || '';
-    const isLfr = RX_LFR.test(c);
-    const isHmt = RX_HMT.test(c);
-    const isWeb = RX_WEB.test(c);
-    if (src === '47') return isLfr;                     // Lead Forms
-    if (src === '7')  return isHmt && !isLfr;           // Estudio: hmt sin lfr
-    if (src === '3')  return isWeb && !isHmt && !isLfr; // WEB: web sin hmt ni lfr
-    return true;
-  }
-
-  let RAW = [];   // todo el data.json
-  let DATA_F = []; // filas de funnel (tipo F)
-  let DATA_S = []; // filas de spend  (tipo S)
-
-  // ── Helpers de formato
-  const nf0 = new Intl.NumberFormat('es-CO');
-  const nf1 = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  const nf2 = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const fInt = v => v ? nf0.format(Math.round(v)) : '<span class="zero">0</span>';
-  const fMoney = v => v ? '$' + nf0.format(Math.round(v)) : '<span class="zero">$0</span>';
-  const fMoneyDec = v => v ? '$' + nf2.format(v) : '<span class="zero">$0</span>';
-  const fPct = v => (v == null || !isFinite(v)) ? '<span class="na">—</span>' : nf2.format(v * 100) + '%';
-  const fRatio = v => (v == null || !isFinite(v)) ? '<span class="na">—</span>' : nf1.format(v);
-
-  // ── Cargar datos
-  fetch('data.json?t=' + Date.now())
-    .then(r => r.json())
-    .then(d => {
-      RAW = d.rows || [];
-      DATA_F = RAW.filter(r => r.t === 'F');
-      DATA_S = RAW.filter(r => r.t === 'S');
-
-      // Inicializar fechas: últimos 12 meses por default
-      const allDates = RAW.map(r => r.d).sort();
-      if (allDates.length) {
-        const max = allDates[allDates.length - 1];
-        const min = '2024-01-01';
-        const maxDate = new Date(max);
-        const yearAgo = new Date(maxDate); yearAgo.setMonth(yearAgo.getMonth() - 12);
-        state.dateFrom = yearAgo.toISOString().slice(0, 10);
-        state.dateTo = max;
-        document.getElementById('dateFrom').value = state.dateFrom;
-        document.getElementById('dateFrom').min = min;
-        document.getElementById('dateFrom').max = max;
-        document.getElementById('dateTo').value = state.dateTo;
-        document.getElementById('dateTo').min = min;
-        document.getElementById('dateTo').max = max;
-      }
-
-      if (d.generated) {
-        document.getElementById('lastUpdate').textContent = '· Actualizado: ' + d.generated;
-      }
-
-      bindControls();
-      render();
-    })
-    .catch(err => {
-      document.getElementById('tableWrap').innerHTML = '<div class="empty">No se pudo cargar data.json — ' + err + '</div>';
-    });
-
-  function bindControls() {
-    document.querySelectorAll('#granPills .pill').forEach(p => {
-      p.onclick = () => { state.gran = p.dataset.gran; activate('#granPills', p); render(); };
-    });
-    document.querySelectorAll('#platPills .pill').forEach(p => {
-      p.onclick = () => { state.plat = p.dataset.plat; activate('#platPills', p); render(); };
-    });
-    document.querySelectorAll('#srcPills .pill').forEach(p => {
-      p.onclick = () => { state.src = p.dataset.src; activate('#srcPills', p); render(); };
-    });
-    document.getElementById('dateFrom').onchange = e => { state.dateFrom = e.target.value; render(); };
-    document.getElementById('dateTo').onchange   = e => { state.dateTo   = e.target.value; render(); };
-    document.getElementById('searchCamp').oninput = e => { state.search = e.target.value.toLowerCase().trim(); render(); };
-    document.querySelectorAll('.tabs .tab').forEach(t => {
-      t.onclick = () => {
-        state.view = t.dataset.view;
-        document.querySelectorAll('.tabs .tab').forEach(x => x.classList.remove('active'));
-        t.classList.add('active');
-        render();
-      };
-    });
-  }
-  function activate(selGroup, btn) {
-    document.querySelectorAll(selGroup + ' .pill').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-  }
-
-  // ── Truncar fecha según granularidad
-  function truncDate(dateStr, gran) {
-    if (gran === 'D') return dateStr;
-    const d = new Date(dateStr);
-    if (gran === 'W') {
-      // Lunes (ISO)
-      const day = d.getUTCDay() || 7;
-      d.setUTCDate(d.getUTCDate() - (day - 1));
-      return d.toISOString().slice(0, 10);
-    }
-    if (gran === 'M') return dateStr.slice(0, 7) + '-01';
-    return dateStr;
-  }
-
-  // ── Rango y filtros base
-  function passDate(d) {
-    if (state.dateFrom && d < state.dateFrom) return false;
-    if (state.dateTo && d > state.dateTo) return false;
-    return true;
-  }
-  function passPlat(plataforma) {
-    if (state.plat === 'ALL') return true;
-    if (state.plat === 'Otros') return plataforma !== 'Google' && plataforma !== 'Facebook';
-    return plataforma === state.plat;
-  }
-  function passSearch(camp) {
-    if (!state.search) return true;
-    return (camp || '').toLowerCase().includes(state.search);
-  }
-
-  // ── Agregación
-  // Filas funnel: aplican plataforma + fuente + búsqueda + fecha
-  // Filas spend:  aplican plataforma + búsqueda + fecha (NO fuente, el spend es de la campaña)
-  function aggregate(keyFn) {
-    const buckets = new Map();
-    const ensure = (k, base = {}) => {
-      if (!buckets.has(k)) {
-        buckets.set(k, {
-          key: k, ...base,
-          imp: 0, clk: 0, clk_t: 0, spend: 0,
-          creados: 0, calif: 0, asg: 0, cita: 0, cierre: 0
-        });
-      }
-      return buckets.get(k);
-    };
-    DATA_F.forEach(r => {
-      if (!passDate(r.d) || !passPlat(r.p) || !passSearch(r.c)) return;
-      if (!matchSrc(r.c, state.src)) return;
-      const k = keyFn(r);
-      const b = ensure(k.k, k.meta);
-      b.creados += r.cr; b.calif += r.cl; b.asg += r.as; b.cita += r.ct; b.cierre += r.ci;
-    });
-    DATA_S.forEach(r => {
-      if (!passDate(r.d) || !passPlat(r.p) || !passSearch(r.c)) return;
-      if (!matchSrc(r.c, state.src)) return;
-      const k = keyFn(r);
-      const b = ensure(k.k, k.meta);
-      b.imp += r.im; b.clk += r.cl_l; b.clk_t += r.cl_t; b.spend += r.sp;
-    });
-    return Array.from(buckets.values());
-  }
-
-  // ── Render
-  function render() {
-    renderKpis();
-    renderCharts();
-    if (state.view === 'campaign') renderCampaignTable();
-    else renderPeriodTable();
-  }
-
-  // ── Series para la gráfica del funnel
-  const SERIES = [
-    { k: 'creados', label: 'Creados',     color: '#60a5fa' },
-    { k: 'calif',   label: 'Calificados', color: '#34d399' },
-    { k: 'asg',     label: 'Asignados',   color: '#fbbf24' },
-    { k: 'cita',    label: 'Citas',       color: '#fb923c' },
-    { k: 'cierre',  label: 'Cierres',     color: '#f472b6' }
-  ];
-  const seriesVisible = { creados: true, calif: true, asg: true, cita: true, cierre: true };
-
-  function aggregateByMonth() {
-    const buckets = aggregate(r => {
-      const m = (r.d || '').slice(0, 7); // YYYY-MM
-      return { k: m, meta: { month: m } };
-    });
-    buckets.sort((a, b) => a.key.localeCompare(b.key));
-    return buckets;
-  }
-
-  function renderCharts() {
-    const months = aggregateByMonth();
-    drawFunnelChart(months);
-    renderLegend();
-  }
-
-  function renderLegend() {
-    const html = SERIES.map(s => {
-      const muted = seriesVisible[s.k] ? '' : ' muted';
-      return `<span class="legend-item${muted}" data-k="${s.k}">
-        <span class="swatch line" style="background:${s.color}"></span>${s.label}
-      </span>`;
-    }).join('');
-    const leg = document.getElementById('chartLegend');
-    leg.innerHTML = html;
-    leg.querySelectorAll('.legend-item').forEach(it => {
-      it.onclick = () => {
-        const k = it.dataset.k;
-        seriesVisible[k] = !seriesVisible[k];
-        renderCharts();
-      };
-    });
-  }
-
-  function chartGeometry(svgEl) {
-    const rect = svgEl.getBoundingClientRect();
-    const W = rect.width || 800;
-    const H = 280;
-    svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
-    return { W, H, padL: 50, padR: 18, padT: 16, padB: 30 };
-  }
-
-  function niceMax(v) {
-    if (v <= 0) return 10;
-    const exp = Math.pow(10, Math.floor(Math.log10(v)));
-    const n = v / exp;
-    let nice;
-    if (n <= 1) nice = 1; else if (n <= 2) nice = 2;
-    else if (n <= 5) nice = 5; else nice = 10;
-    return nice * exp;
-  }
-
-  function drawFunnelChart(months) {
-    const svg = document.getElementById('chartFunnel');
-    const { W, H, padL, padR, padT, padB } = chartGeometry(svg);
-    const plotW = W - padL - padR;
-    const plotH = H - padT - padB;
-
-    if (!months.length) { svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" class="chart-axis-text">Sin datos</text>`; return; }
-
-    const activeSeries = SERIES.filter(s => seriesVisible[s.k]);
-    let maxVal = 0;
-    months.forEach(m => activeSeries.forEach(s => { if (m[s.k] > maxVal) maxVal = m[s.k]; }));
-    maxVal = niceMax(maxVal || 1);
-
-    const N = months.length;
-    const xAt = i => padL + (N === 1 ? plotW/2 : (i * plotW) / (N - 1));
-    const yAt = v => padT + plotH - (v / maxVal) * plotH;
-
-    let svgInner = '';
-
-    // Grid + Y axis labels (5 ticks)
-    for (let t = 0; t <= 4; t++) {
-      const v = maxVal * t / 4;
-      const y = yAt(v);
-      svgInner += `<line class="chart-grid" x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}"/>`;
-      svgInner += `<text class="chart-axis-text" x="${padL - 6}" y="${y + 3}" text-anchor="end">${formatAxisNum(v)}</text>`;
-    }
-
-    // X axis labels (mes)
-    const stepX = Math.max(1, Math.ceil(N / 12));
-    months.forEach((m, i) => {
-      if (i % stepX !== 0 && i !== N - 1) return;
-      svgInner += `<text class="chart-axis-text" x="${xAt(i)}" y="${H - padB + 14}" text-anchor="middle">${m.month}</text>`;
-    });
-
-    // Series (paths + dots)
-    activeSeries.forEach(s => {
-      const pts = months.map((m, i) => `${xAt(i)},${yAt(m[s.k] || 0)}`).join(' ');
-      svgInner += `<polyline class="chart-line" stroke="${s.color}" points="${pts}"/>`;
-    });
-    activeSeries.forEach(s => {
-      months.forEach((m, i) => {
-        svgInner += `<circle class="chart-dot" cx="${xAt(i)}" cy="${yAt(m[s.k] || 0)}" r="3.5" fill="${s.color}"/>`;
-      });
-    });
-
-    // Hover rects (one per month column for tooltip)
-    const colW = N > 1 ? plotW / (N - 1) : plotW;
-    months.forEach((m, i) => {
-      const cx = xAt(i);
-      svgInner += `<rect class="chart-hover-rect" x="${cx - colW/2}" y="${padT}" width="${colW}" height="${plotH}" data-i="${i}"/>`;
-    });
-
-    svg.innerHTML = svgInner;
-
-    // Tooltip handlers
-    const tt = document.getElementById('chartTooltip');
-    svg.querySelectorAll('.chart-hover-rect').forEach(r => {
-      r.onmousemove = (e) => {
-        const i = +r.dataset.i;
-        const m = months[i];
-        const rows = activeSeries.map(s => `<div class="tt-row"><span class="tt-label"><span class="tt-dot" style="background:${s.color}"></span>${s.label}</span><span class="tt-val">${nf0.format(m[s.k] || 0)}</span></div>`).join('');
-        tt.innerHTML = `<div class="tt-title">${m.month}</div>${rows}`;
-        tt.style.opacity = '1';
-        positionTooltip(tt, e, svg);
-      };
-      r.onmouseleave = () => { tt.style.opacity = '0'; };
-    });
-  }
-
-  function positionTooltip(tt, e, svg) {
-    const wrap = svg.parentElement.getBoundingClientRect();
-    const x = e.clientX - wrap.left + 12;
-    const y = e.clientY - wrap.top + 12;
-    const ttW = tt.offsetWidth;
-    const maxX = wrap.width - ttW - 6;
-    tt.style.left = Math.min(x, maxX) + 'px';
-    tt.style.top  = y + 'px';
-  }
-
-  function formatAxisNum(v) {
-    if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
-    if (v >= 1e3) return (v / 1e3).toFixed(v >= 1e4 ? 0 : 1) + 'k';
-    return Math.round(v).toString();
-  }
-  function formatMoneyAxis(v) {
-    if (v >= 1e9) return '$' + (v / 1e9).toFixed(1) + 'B';
-    if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
-    if (v >= 1e3) return '$' + (v / 1e3).toFixed(0) + 'k';
-    return '$' + Math.round(v);
-  }
-
-  // Re-render charts on window resize (to recompute viewBox width)
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(renderCharts, 150);
-  });
-
-  function renderKpis() {
-    const all = aggregate(() => ({ k: 'total', meta: {} }))[0] || {
-      imp:0,clk:0,spend:0,creados:0,calif:0,asg:0,cita:0,cierre:0
-    };
-    const cpl  = all.creados ? all.spend / all.creados : null;
-    const cpql = all.calif   ? all.spend / all.calif   : null;
-    const cpla = all.asg     ? all.spend / all.asg     : null;
-    const html = [
-      kpi('Inversión',    fMoney(all.spend)),
-      kpi('Impresiones',  fInt(all.imp)),
-      kpi('Clicks (link)',fInt(all.clk)),
-      kpi('Creados',      fInt(all.creados)),
-      kpi('Calificados',  fInt(all.calif)),
-      kpi('Asignados',    fInt(all.asg)),
-      kpi('Citas',        fInt(all.cita)),
-      kpi('Cierres',      fInt(all.cierre)),
-      kpi('CP Lead',      fMoneyDec(cpl),  '', 'cost'),
-      kpi('CP Calificado',fMoneyDec(cpql), '', 'cost'),
-      kpi('CP Asignado',  fMoneyDec(cpla), '', 'cost'),
-    ].join('');
-    document.getElementById('kpis').innerHTML = html;
-  }
-  function kpi(label, value, sub='', cls='') {
-    return `<div class="kpi ${cls}"><div class="label">${label}</div><div class="value">${value}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
-  }
-
-  // ── Cabeceras compartidas
-  const COL_GROUPS = [
-    { name: 'Volumen',  span: 8, cls: 'group-vol' },
-    { name: 'Tasas',    span: 7, cls: 'group-rate' },
-    { name: 'Costos',   span: 8, cls: 'group-cost' }
-  ];
-  const COLUMNS = [
-    // Volumen (8)
-    { k: 'imp',     l: 'Impr.',     g: 'group-vol' },
-    { k: 'clk',     l: 'Clicks',    g: 'group-vol' },
-    { k: 'creados', l: 'Creados',   g: 'group-vol' },
-    { k: 'calif',   l: 'Calif.',    g: 'group-vol' },
-    { k: 'asg',     l: 'Asign.',    g: 'group-vol' },
-    { k: 'cita',    l: 'Citas',     g: 'group-vol' },
-    { k: 'cierre',  l: 'Cierres',   g: 'group-vol' },
-    { k: 'asg_x_c', l: 'Asg/Cierre',g: 'group-vol' },
-    // Tasas (7)
-    { k: 'ctr',     l: '% CTR',         g: 'group-rate' },
-    { k: 'clk2lead',l: '% Click→Lead',  g: 'group-rate' },
-    { k: 'cr',      l: '% CR (Cal/Cr)', g: 'group-rate' },
-    { k: 'tasa_asg',l: '% Asign.',      g: 'group-rate' },
-    { k: 'tasa_cita',l:'% Cita',        g: 'group-rate' },
-    { k: 'tasa_cie',l: '% Cierre',      g: 'group-rate' },
-    { k: 'cr_global',l:'% Cr→Cie',      g: 'group-rate' },
-    // Costos (8)
-    { k: 'spend',   l: 'Inversión', g: 'group-cost' },
-    { k: 'cpm',     l: 'CPM',       g: 'group-cost' },
-    { k: 'cp_clk',  l: 'CP Click',  g: 'group-cost' },
-    { k: 'cpl',     l: 'CP Lead',   g: 'group-cost' },
-    { k: 'cpql',    l: 'CP QualifLead',g:'group-cost' },
-    { k: 'cpla',    l: 'CP Asign.', g: 'group-cost' },
-    { k: 'cpcita',  l: 'CP Cita',   g: 'group-cost' },
-    { k: 'cpcierre',l: 'CP Cierre', g: 'group-cost' }
-  ];
-
-  function computeMetrics(b) {
-    return {
-      ...b,
-      asg_x_c:  b.cierre ? b.asg / b.cierre : null,
-      ctr:      b.imp ? b.clk / b.imp : null,
-      clk2lead: b.clk ? b.creados / b.clk : null,
-      cr:       b.creados ? b.calif / b.creados : null,
-      tasa_asg: b.calif ? b.asg / b.calif : null,
-      tasa_cita:b.asg ? b.cita / b.asg : null,
-      tasa_cie: b.cita ? b.cierre / b.cita : null,
-      cr_global:b.creados ? b.cierre / b.creados : null,
-      cpm:      b.imp ? b.spend * 1000 / b.imp : null,
-      cp_clk:   b.clk ? b.spend / b.clk : null,
-      cpl:      b.creados ? b.spend / b.creados : null,
-      cpql:     b.calif ? b.spend / b.calif : null,
-      cpla:     b.asg ? b.spend / b.asg : null,
-      cpcita:   b.cita ? b.spend / b.cita : null,
-      cpcierre: b.cierre ? b.spend / b.cierre : null
-    };
-  }
-
-  function fmtCell(col, v) {
-    if (v == null || (typeof v === 'number' && !isFinite(v))) return '<td class="' + col.g + ' na">—</td>';
-    if (col.k === 'asg_x_c') return '<td class="' + col.g + '">' + fRatio(v) + '</td>';
-    if (col.k.startsWith('ctr') || col.k.startsWith('clk2') || col.k === 'cr' || col.k.startsWith('tasa_') || col.k === 'cr_global')
-      return '<td class="' + col.g + '">' + fPct(v) + '</td>';
-    if (col.k === 'cpm' || col.k === 'cp_clk' || col.k.startsWith('cp'))
-      return '<td class="' + col.g + '">' + fMoneyDec(v) + '</td>';
-    if (col.k === 'spend')
-      return '<td class="' + col.g + '">' + fMoney(v) + '</td>';
-    return '<td class="' + col.g + '">' + fInt(v) + '</td>';
-  }
-
-  function buildTableHeader(firstColLabel) {
-    let g1 = '<tr class="group-header"><th class="sticky-col"></th>';
-    COL_GROUPS.forEach(grp => g1 += `<th colspan="${grp.span}" class="${grp.cls}">${grp.name}</th>`);
-    g1 += '</tr>';
-    let g2 = `<tr><th class="sticky-col">${firstColLabel}</th>`;
-    COLUMNS.forEach(c => g2 += `<th class="${c.g}">${c.l}</th>`);
-    g2 += '</tr>';
-    return '<thead>' + g1 + g2 + '</thead>';
-  }
-
-  function buildRow(label, b, isTotal=false) {
-    const m = computeMetrics(b);
-    let html = '<tr' + (isTotal ? ' class="totals"' : '') + '>';
-    html += '<td class="sticky-col" title="' + (label||'').replace(/"/g,'&quot;') + '">' + label + '</td>';
-    COLUMNS.forEach(c => html += fmtCell(c, m[c.k]));
-    html += '</tr>';
-    return html;
-  }
-
-  function renderCampaignTable() {
-    const buckets = aggregate(r => ({
-      k: (r.p || 'Otros') + '||' + (r.c || '(sin campaña)'),
-      meta: { plataforma: r.p || 'Otros', campana: r.c || '(sin campaña)' }
-    }));
-    buckets.sort((a, b) => b.spend - a.spend || b.creados - a.creados);
-
-    const tbl = document.getElementById('mainTable');
-    if (!buckets.length) { tbl.innerHTML = '<tbody><tr><td class="empty" colspan="24">Sin datos para los filtros aplicados</td></tr></tbody>'; return; }
-
-    let html = buildTableHeader('Campaña');
-    html += '<tbody>';
-
-    // Totales
-    const tot = buckets.reduce((acc, b) => {
-      ['imp','clk','clk_t','spend','creados','calif','asg','cita','cierre'].forEach(k => acc[k] += b[k]);
-      return acc;
-    }, { imp:0,clk:0,clk_t:0,spend:0,creados:0,calif:0,asg:0,cita:0,cierre:0 });
-    html += buildRow('TOTAL (' + buckets.length + ' campañas)', tot, true);
-
-    buckets.forEach(b => {
-      const cls = b.plataforma === 'Google' ? 'google' : b.plataforma === 'Facebook' ? 'facebook' : 'otros';
-      const tag = `<span class="plat-tag ${cls}">${b.plataforma}</span>`;
-      html += buildRow(tag + b.campana, b);
-    });
-    html += '</tbody>';
-    tbl.innerHTML = html;
-  }
-
-  function renderPeriodTable() {
-    const buckets = aggregate(r => {
-      const p = truncDate(r.d, state.gran);
-      return { k: p, meta: { periodo: p } };
-    });
-    buckets.sort((a, b) => b.key.localeCompare(a.key));
-
-    const tbl = document.getElementById('mainTable');
-    if (!buckets.length) { tbl.innerHTML = '<tbody><tr><td class="empty" colspan="24">Sin datos para los filtros aplicados</td></tr></tbody>'; return; }
-
-    let html = buildTableHeader(periodLabel(state.gran));
-    html += '<tbody>';
-
-    const tot = buckets.reduce((acc, b) => {
-      ['imp','clk','clk_t','spend','creados','calif','asg','cita','cierre'].forEach(k => acc[k] += b[k]);
-      return acc;
-    }, { imp:0,clk:0,clk_t:0,spend:0,creados:0,calif:0,asg:0,cita:0,cierre:0 });
-    html += buildRow('TOTAL (' + buckets.length + ' períodos)', tot, true);
-
-    buckets.forEach(b => {
-      html += buildRow(formatPeriod(b.key, state.gran), b);
-    });
-    html += '</tbody>';
-    tbl.innerHTML = html;
-  }
-
-  function periodLabel(g) { return g === 'D' ? 'Día' : g === 'W' ? 'Semana (lun)' : 'Mes'; }
-  function formatPeriod(p, g) {
-    if (g === 'D') return p;
-    if (g === 'W') return 'Sem ' + p;
-    if (g === 'M') return p.slice(0, 7);
-    return p;
-  }
 </script>
 </body>
 </html>
