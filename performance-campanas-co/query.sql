@@ -43,11 +43,12 @@ base_leads AS (
     g.campana_mercadeo                          AS campana_mercadeo,
     LOWER(TRIM(g.campana_mercadeo))             AS campana_key,
     CASE
-      WHEN LOWER(u.mkt_platform) IN ('facebook','instagram') THEN 'Facebook'
-      WHEN LOWER(u.mkt_platform) = 'tiktok'                  THEN 'TikTok'
-      WHEN LOWER(u.mkt_platform) = 'google'                  THEN 'Google'
-      WHEN LOWER(u.mkt_platform) = 'bing'                    THEN 'Bing'
-      WHEN u.mkt_platform IS NULL OR u.mkt_platform = ''     THEN 'Otros'
+      WHEN LOWER(u.mkt_platform) IN ('facebook','instagram')        THEN 'Facebook'
+      WHEN LOWER(u.mkt_platform) = 'tiktok'                         THEN 'TikTok'
+      WHEN LOWER(u.mkt_platform) = 'google'                         THEN 'Google'
+      WHEN LOWER(u.mkt_platform) = 'bing'                           THEN 'Bing'
+      WHEN g.campana_mercadeo IS NULL OR TRIM(g.campana_mercadeo)='' THEN 'Directo'
+      WHEN u.mkt_platform IS NULL OR u.mkt_platform = ''            THEN 'Otros'
       ELSE u.mkt_platform
     END                                                                    AS mkt_platform,
     COALESCE(u.mkt_channel_big,    'Otros')                                AS ch_big,

@@ -12,7 +12,7 @@
     --text: #e2e8f0; --text-title: #f8fafc;
     --text-muted: #cbd5e1; --text-muted-2: #94a3b8; --text-muted-3: #64748b;
     --accent: #818cf8; --accent-on: #f8fafc;
-    --google: #fbbf24; --facebook: #38bdf8; --otros: #94a3b8;
+    --google: #fbbf24; --facebook: #38bdf8; --directo: #a78bfa; --otros: #94a3b8;
     --row-total: #1a2744;
     --bar-high: #f87171; --bar-med: #fbbf24; --bar-low: #34d399;
     --group-vol: #1e2942; --group-rate: #1d2735; --group-cost: #2a1d35;
@@ -23,7 +23,7 @@
     --text: #334155; --text-title: #0f172a;
     --text-muted: #475569; --text-muted-2: #64748b; --text-muted-3: #94a3b8;
     --accent: #6366f1;
-    --google: #d97706; --facebook: #0284c7; --otros: #64748b;
+    --google: #d97706; --facebook: #0284c7; --directo: #7c3aed; --otros: #64748b;
     --row-total: #eef2ff;
     --bar-high: #dc2626; --bar-med: #d97706; --bar-low: #059669;
     --group-vol: #eff6ff; --group-rate: #f0f9ff; --group-cost: #fdf2f8;
@@ -53,6 +53,7 @@
   .pill + .pill { border-left: 1px solid var(--border); }
   .pill.plat-google.active { background: var(--google); }
   .pill.plat-facebook.active { background: var(--facebook); }
+  .pill.plat-directo.active { background: var(--directo); }
   .pill.plat-otros.active { background: var(--otros); }
 
   input[type="date"], input[type="text"] {
@@ -181,6 +182,7 @@
         <button type="button" class="pill active" data-plat="ALL">Todas</button>
         <button type="button" class="pill plat-google" data-plat="Google">Google</button>
         <button type="button" class="pill plat-facebook" data-plat="Facebook">Facebook</button>
+        <button type="button" class="pill plat-directo" data-plat="Directo">Directo</button>
         <button type="button" class="pill plat-otros" data-plat="Otros">Otros</button>
       </div>
     </div>
@@ -253,6 +255,7 @@
     <div class="chart-legend" style="margin-bottom:10px;">
       <span class="legend-item"><span class="swatch line" style="background:#fbbf24"></span>Google</span>
       <span class="legend-item"><span class="swatch line" style="background:#38bdf8"></span>Facebook</span>
+      <span class="legend-item"><span class="swatch line" style="background:#a78bfa"></span>Directo</span>
       <span class="legend-item"><span class="swatch line" style="background:#94a3b8"></span>Otros</span>
     </div>
     <div class="chart-wrap">
@@ -423,7 +426,7 @@
   }
   function passPlat(plataforma) {
     if (state.plat === 'ALL') return true;
-    if (state.plat === 'Otros') return plataforma !== 'Google' && plataforma !== 'Facebook';
+    if (state.plat === 'Otros') return plataforma !== 'Google' && plataforma !== 'Facebook' && plataforma !== 'Directo';
     return plataforma === state.plat;
   }
   function passSearch(camp) {
@@ -606,13 +609,13 @@
   // ───────────────────────────────────────────────────────────────
   //  Chart 2: Distribución por plataforma (barras agrupadas)
   // ───────────────────────────────────────────────────────────────
-  const PLAT_COLORS = { Google: '#fbbf24', Facebook: '#38bdf8', Otros: '#94a3b8' };
-  const PLAT_KEYS = ['Google', 'Facebook', 'Otros'];
+  const PLAT_COLORS = { Google: '#fbbf24', Facebook: '#38bdf8', Directo: '#a78bfa', Otros: '#94a3b8' };
+  const PLAT_KEYS = ['Google', 'Facebook', 'Directo', 'Otros'];
+  const platOf = p => (p === 'Google' || p === 'Facebook' || p === 'Directo') ? p : 'Otros';
 
   // OJO: ignoramos state.plat aquí — el chart compara entre plataformas.
   function aggregateByPlatform() {
-    const acc = { Google: emptyBucket('Google'), Facebook: emptyBucket('Facebook'), Otros: emptyBucket('Otros') };
-    const platOf = p => (p === 'Google' || p === 'Facebook') ? p : 'Otros';
+    const acc = Object.fromEntries(PLAT_KEYS.map(p => [p, emptyBucket(p)]));
     DATA_F.forEach(r => {
       if (!passDate(r.d) || !passSearch(r.c) || !matchSrc(r.c, state.src)) return;
       const b = acc[platOf(r.p)];
@@ -704,9 +707,12 @@
   // OJO: ignoramos state.plat aquí — el chart compara entre plataformas.
   function aggregateByMonthPlatform() {
     const byMonth = new Map();
-    const platOf = p => (p === 'Google' || p === 'Facebook') ? p : 'Otros';
     const ensure = m => {
-      if (!byMonth.has(m)) byMonth.set(m, { month: m, Google:{cr:0,cl:0,sp:0}, Facebook:{cr:0,cl:0,sp:0}, Otros:{cr:0,cl:0,sp:0} });
+      if (!byMonth.has(m)) {
+        const skeleton = { month: m };
+        PLAT_KEYS.forEach(p => skeleton[p] = { cr:0, cl:0, sp:0 });
+        byMonth.set(m, skeleton);
+      }
       return byMonth.get(m);
     };
     DATA_F.forEach(r => {
