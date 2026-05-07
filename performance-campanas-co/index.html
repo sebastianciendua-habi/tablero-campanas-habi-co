@@ -108,7 +108,11 @@
 
   .empty { padding: 40px; text-align: center; color: var(--text-muted-3); font-size: 13px; }
 
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  @media (max-width: 1100px) { .charts-row { grid-template-columns: 1fr; } }
+  .chart-controls { display: flex; gap: 8px; }
   .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .charts-row .chart-card { margin-bottom: 0; }
   .chart-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; }
   .chart-title { font-size: 13px; font-weight: 600; color: var(--text-title); }
   .chart-legend { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -219,6 +223,45 @@
   </div>
 </div>
 
+<div class="charts-row">
+  <div class="chart-card">
+    <div class="chart-head">
+      <div class="chart-title">Distribución por plataforma — volúmenes del funnel</div>
+      <div class="chart-legend">
+        <span class="legend-item"><span class="swatch line" style="background:#60a5fa"></span>Creados</span>
+        <span class="legend-item"><span class="swatch line" style="background:#34d399"></span>Calificados</span>
+        <span class="legend-item"><span class="swatch line" style="background:#fbbf24"></span>Asignados</span>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <svg id="chartPlat" preserveAspectRatio="none"></svg>
+      <div class="chart-tooltip" id="chartTooltipP"></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-head">
+      <div class="chart-title">Mix mensual por plataforma</div>
+      <div class="chart-controls">
+        <div class="pill-group" id="mixMetricPills">
+          <button type="button" class="pill active" data-mix="sp">Inversión</button>
+          <button type="button" class="pill" data-mix="cr">Registros</button>
+          <button type="button" class="pill" data-mix="cl">Calificados</button>
+        </div>
+      </div>
+    </div>
+    <div class="chart-legend" style="margin-bottom:10px;">
+      <span class="legend-item"><span class="swatch line" style="background:#fbbf24"></span>Google</span>
+      <span class="legend-item"><span class="swatch line" style="background:#38bdf8"></span>Facebook</span>
+      <span class="legend-item"><span class="swatch line" style="background:#94a3b8"></span>Otros</span>
+    </div>
+    <div class="chart-wrap">
+      <svg id="chartMix" preserveAspectRatio="none"></svg>
+      <div class="chart-tooltip" id="chartTooltipM"></div>
+    </div>
+  </div>
+</div>
+
 <div class="tabs" style="margin-top:24px;">
   <button type="button" class="tab active" data-view="campaign">Por Campaña</button>
   <button type="button" class="tab" data-view="period">Serie de Tiempo</button>
@@ -254,7 +297,8 @@
     dateFrom: null,
     dateTo: null,
     search: '',
-    view: 'campaign'
+    view: 'campaign',
+    mixMetric: 'sp'  // sp=Inversión, cr=Registros, cl=Calificados
   };
 
   const SRC_LABEL = { 3: 'WEB', 7: 'Estudio Inmueble', 47: 'Lead Forms' };
@@ -347,6 +391,9 @@
         t.classList.add('active');
         render();
       };
+    });
+    document.querySelectorAll('#mixMetricPills .pill').forEach(p => {
+      p.onclick = () => { state.mixMetric = p.dataset.mix; activate('#mixMetricPills', p); drawMixChart(); };
     });
   }
   function activate(selGroup, btn) {
@@ -446,6 +493,8 @@
   function renderCharts() {
     const months = aggregateByMonth();
     drawFunnelChart(months);
+    drawPlatformChart();
+    drawMixChart();
     renderLegend();
   }
 
@@ -554,6 +603,209 @@
     });
   }
 
+  // ───────────────────────────────────────────────────────────────
+  //  Chart 2: Distribución por plataforma (barras agrupadas)
+  // ───────────────────────────────────────────────────────────────
+  const PLAT_COLORS = { Google: '#fbbf24', Facebook: '#38bdf8', Otros: '#94a3b8' };
+  const PLAT_KEYS = ['Google', 'Facebook', 'Otros'];
+
+  // OJO: ignoramos state.plat aquí — el chart compara entre plataformas.
+  function aggregateByPlatform() {
+    const acc = { Google: emptyBucket('Google'), Facebook: emptyBucket('Facebook'), Otros: emptyBucket('Otros') };
+    const platOf = p => (p === 'Google' || p === 'Facebook') ? p : 'Otros';
+    DATA_F.forEach(r => {
+      if (!passDate(r.d) || !passSearch(r.c) || !matchSrc(r.c, state.src)) return;
+      const b = acc[platOf(r.p)];
+      b.creados += r.cr; b.calif += r.cl; b.asg += r.as; b.cita += r.ct; b.cierre += r.ci;
+    });
+    DATA_S.forEach(r => {
+      if (!passDate(r.d) || !passSearch(r.c) || !matchSrc(r.c, state.src)) return;
+      const b = acc[platOf(r.p)];
+      b.imp += r.im; b.clk += r.cl_l; b.clk_t += r.cl_t; b.spend += r.sp;
+    });
+    return PLAT_KEYS.map(p => acc[p]);
+  }
+  function emptyBucket(plat) {
+    return { plat, imp:0, clk:0, clk_t:0, spend:0, creados:0, calif:0, asg:0, cita:0, cierre:0 };
+  }
+
+  function drawPlatformChart() {
+    const svg = document.getElementById('chartPlat');
+    const { W, H, padL, padR, padT, padB } = chartGeometry(svg);
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+
+    const data = aggregateByPlatform();
+    const SERIES_BAR = [
+      { k: 'creados', label: 'Creados',     color: '#60a5fa' },
+      { k: 'calif',   label: 'Calificados', color: '#34d399' },
+      { k: 'asg',     label: 'Asignados',   color: '#fbbf24' }
+    ];
+
+    let maxVal = 0;
+    data.forEach(d => SERIES_BAR.forEach(s => { if (d[s.k] > maxVal) maxVal = d[s.k]; }));
+    maxVal = niceMax(maxVal || 1);
+
+    const N = data.length;
+    const groupSlot = plotW / N;
+    const groupGap = groupSlot * 0.18;
+    const innerW = groupSlot - groupGap;
+    const barW = innerW / SERIES_BAR.length;
+
+    const yAt = v => padT + plotH - (v / maxVal) * plotH;
+
+    let svgInner = '';
+    for (let t = 0; t <= 4; t++) {
+      const v = maxVal * t / 4;
+      const y = yAt(v);
+      svgInner += `<line class="chart-grid" x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}"/>`;
+      svgInner += `<text class="chart-axis-text" x="${padL - 6}" y="${y + 3}" text-anchor="end">${formatAxisNum(v)}</text>`;
+    }
+
+    data.forEach((d, gi) => {
+      const groupX = padL + groupSlot * gi + groupGap / 2;
+      svgInner += `<text class="chart-axis-text" x="${groupX + innerW/2}" y="${H - padB + 14}" text-anchor="middle" style="font-size:11px;font-weight:600;fill:${PLAT_COLORS[d.plat]}">${d.plat}</text>`;
+      SERIES_BAR.forEach((s, si) => {
+        const x = groupX + barW * si;
+        const y = yAt(d[s.k] || 0);
+        const h = padT + plotH - y;
+        svgInner += `<rect class="chart-bar" x="${x}" y="${y}" width="${barW - 2}" height="${h}" fill="${s.color}" data-g="${gi}" data-s="${si}"/>`;
+      });
+    });
+
+    svg.innerHTML = svgInner;
+
+    const tt = document.getElementById('chartTooltipP');
+    svg.querySelectorAll('.chart-bar').forEach(r => {
+      r.onmousemove = (e) => {
+        const gi = +r.dataset.g, si = +r.dataset.s;
+        const d = data[gi]; const s = SERIES_BAR[si];
+        const total = SERIES_BAR.reduce((a, ss) => a + (d[ss.k] || 0), 0);
+        const totalAll = data.reduce((a, dd) => a + (dd[s.k] || 0), 0);
+        const pctOfPlat = total ? (d[s.k] / total) * 100 : 0;
+        const pctOfStage = totalAll ? (d[s.k] / totalAll) * 100 : 0;
+        tt.innerHTML = `
+          <div class="tt-title">${d.plat} · ${s.label}</div>
+          <div class="tt-row"><span class="tt-label">Volumen</span><span class="tt-val">${nf0.format(d[s.k] || 0)}</span></div>
+          <div class="tt-row"><span class="tt-label">% de ${s.label} total</span><span class="tt-val">${pctOfStage.toFixed(1)}%</span></div>
+          <div class="tt-row"><span class="tt-label">Funnel ${d.plat}: Cr→Cal</span><span class="tt-val">${d.creados ? (d.calif/d.creados*100).toFixed(1) : '0'}%</span></div>
+          <div class="tt-row"><span class="tt-label">Funnel ${d.plat}: Cal→Asg</span><span class="tt-val">${d.calif ? (d.asg/d.calif*100).toFixed(1) : '0'}%</span></div>
+        `;
+        tt.style.opacity = '1';
+        positionTooltip(tt, e, svg);
+      };
+      r.onmouseleave = () => { tt.style.opacity = '0'; };
+    });
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  //  Chart 3: Mix mensual por plataforma (stacked bars)
+  // ───────────────────────────────────────────────────────────────
+  // OJO: ignoramos state.plat aquí — el chart compara entre plataformas.
+  function aggregateByMonthPlatform() {
+    const byMonth = new Map();
+    const platOf = p => (p === 'Google' || p === 'Facebook') ? p : 'Otros';
+    const ensure = m => {
+      if (!byMonth.has(m)) byMonth.set(m, { month: m, Google:{cr:0,cl:0,sp:0}, Facebook:{cr:0,cl:0,sp:0}, Otros:{cr:0,cl:0,sp:0} });
+      return byMonth.get(m);
+    };
+    DATA_F.forEach(r => {
+      if (!passDate(r.d) || !passSearch(r.c) || !matchSrc(r.c, state.src)) return;
+      const b = ensure(r.d.slice(0, 7))[platOf(r.p)];
+      b.cr += r.cr; b.cl += r.cl;
+    });
+    DATA_S.forEach(r => {
+      if (!passDate(r.d) || !passSearch(r.c) || !matchSrc(r.c, state.src)) return;
+      ensure(r.d.slice(0, 7))[platOf(r.p)].sp += r.sp;
+    });
+    return Array.from(byMonth.values()).sort((a, b) => a.month.localeCompare(b.month));
+  }
+
+  function drawMixChart() {
+    const svg = document.getElementById('chartMix');
+    const { W, H, padL, padR, padT, padB } = chartGeometry(svg);
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+
+    const months = aggregateByMonthPlatform();
+    const metric = state.mixMetric;  // 'sp' | 'cr' | 'cl'
+    const metricLabel = { sp: 'Inversión', cr: 'Registros', cl: 'Calificados' }[metric];
+
+    if (!months.length) { svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" class="chart-axis-text">Sin datos</text>`; return; }
+
+    let maxVal = 0;
+    months.forEach(m => {
+      const total = (m.Google[metric] || 0) + (m.Facebook[metric] || 0) + (m.Otros[metric] || 0);
+      if (total > maxVal) maxVal = total;
+    });
+    maxVal = niceMax(maxVal || 1);
+
+    const N = months.length;
+    const colSlot = plotW / N;
+    const barW = Math.max(8, colSlot * 0.65);
+    const xAt = i => padL + colSlot * (i + 0.5);
+    const yAt = v => padT + plotH - (v / maxVal) * plotH;
+
+    let svgInner = '';
+    for (let t = 0; t <= 4; t++) {
+      const v = maxVal * t / 4;
+      const y = yAt(v);
+      svgInner += `<line class="chart-grid" x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}"/>`;
+      svgInner += `<text class="chart-axis-text" x="${padL - 6}" y="${y + 3}" text-anchor="end">${metric === 'sp' ? formatMoneyAxis(v) : formatAxisNum(v)}</text>`;
+    }
+
+    const stepX = Math.max(1, Math.ceil(N / 12));
+    months.forEach((m, i) => {
+      if (i % stepX !== 0 && i !== N - 1) return;
+      svgInner += `<text class="chart-axis-text" x="${xAt(i)}" y="${H - padB + 14}" text-anchor="middle">${m.month}</text>`;
+    });
+
+    months.forEach((m, i) => {
+      let yCursor = padT + plotH;
+      PLAT_KEYS.forEach(plat => {
+        const v = m[plat][metric] || 0;
+        if (v <= 0) return;
+        const h = (v / maxVal) * plotH;
+        const y = yCursor - h;
+        svgInner += `<rect x="${xAt(i) - barW/2}" y="${y}" width="${barW}" height="${h}" fill="${PLAT_COLORS[plat]}" opacity="0.92"/>`;
+        yCursor = y;
+      });
+      svgInner += `<rect class="chart-hover-rect" x="${xAt(i) - colSlot/2}" y="${padT}" width="${colSlot}" height="${plotH}" data-i="${i}"/>`;
+    });
+
+    svg.innerHTML = svgInner;
+
+    const tt = document.getElementById('chartTooltipM');
+    svg.querySelectorAll('.chart-hover-rect').forEach(r => {
+      r.onmousemove = (e) => {
+        const i = +r.dataset.i;
+        const m = months[i];
+        const total = PLAT_KEYS.reduce((a, p) => a + (m[p][metric] || 0), 0);
+        const fmt = metric === 'sp' ? v => '$' + nf0.format(Math.round(v)) : v => nf0.format(v);
+        const rows = PLAT_KEYS.map(p => {
+          const v = m[p][metric] || 0;
+          const pct = total ? (v / total * 100).toFixed(1) + '%' : '0%';
+          return `<div class="tt-row"><span class="tt-label"><span class="tt-dot" style="background:${PLAT_COLORS[p]}"></span>${p}</span><span class="tt-val">${fmt(v)} <span style="color:var(--text-muted-3);font-weight:400">· ${pct}</span></span></div>`;
+        }).join('');
+        tt.innerHTML = `
+          <div class="tt-title">${m.month} · ${metricLabel}</div>
+          ${rows}
+          <div class="tt-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:4px"><span class="tt-label">Total</span><span class="tt-val">${fmt(total)}</span></div>
+        `;
+        tt.style.opacity = '1';
+        positionTooltip(tt, e, svg);
+      };
+      r.onmouseleave = () => { tt.style.opacity = '0'; };
+    });
+  }
+
+  function formatMoneyAxis(v) {
+    if (v >= 1e9) return '$' + (v / 1e9).toFixed(1) + 'B';
+    if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+    if (v >= 1e3) return '$' + (v / 1e3).toFixed(0) + 'k';
+    return '$' + Math.round(v);
+  }
+
   function positionTooltip(tt, e, svg) {
     const wrap = svg.parentElement.getBoundingClientRect();
     const x = e.clientX - wrap.left + 12;
@@ -568,12 +820,6 @@
     if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
     if (v >= 1e3) return (v / 1e3).toFixed(v >= 1e4 ? 0 : 1) + 'k';
     return Math.round(v).toString();
-  }
-  function formatMoneyAxis(v) {
-    if (v >= 1e9) return '$' + (v / 1e9).toFixed(1) + 'B';
-    if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
-    if (v >= 1e3) return '$' + (v / 1e3).toFixed(0) + 'k';
-    return '$' + Math.round(v);
   }
 
   // Re-render charts on window resize (to recompute viewBox width)
