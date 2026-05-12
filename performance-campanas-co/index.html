@@ -277,7 +277,7 @@
 </div>
 
 <div class="footer-info">
-  Filtro de Fuente: matchea el sufijo del nombre de la campaña (<code>lfr</code>/<code>leadform</code> → Lead Forms · <code>hmt</code> → Estudio · <code>web</code> → WEB). Volumen sin spend = orgánico/direct/sin tagging UTM.
+  Filtro de Fuente: matchea el sufijo del nombre de la campaña (<code>lfr</code>/<code>leadform</code> → Lead Forms · <code>hmt</code> → Estudio · <code>web</code> → WEB). Aplica solo al funnel — el spend NO se filtra por fuente porque una sola campaña paid (ej. Google) genera leads de varias fuentes simultáneamente y el spend está reportado a un solo nombre. Los CP* representan "costo de la plataforma ÷ leads del filtro".
 </div>
 
 <script>
@@ -456,9 +456,13 @@
       const b = ensure(k.k, k.meta);
       b.creados += r.cr; b.calif += r.cl; b.asg += r.as; b.cita += r.ct; b.cierre += r.ci;
     });
+    // Spend: NO filtra por fuente. Razón: una sola campaña paid (ej. Google)
+    // genera leads de varias fuentes (WEB + Estudio), pero el spend está
+    // reportado a un solo nombre de campaña. Filtrarlo por sufijo dejaría
+    // CPLs en 0. Mejor mostrar spend total de la plataforma y dejar que el
+    // usuario interprete CPL como costo compartido con otras fuentes.
     DATA_S.forEach(r => {
       if (!passDate(r.d) || !passPlat(r.p) || !passSearch(r.c)) return;
-      if (!matchSrc(r.c, state.src)) return;
       const k = keyFn(r);
       const b = ensure(k.k, k.meta);
       b.imp += r.im; b.clk += r.cl_l; b.clk_t += r.cl_t; b.spend += r.sp;
