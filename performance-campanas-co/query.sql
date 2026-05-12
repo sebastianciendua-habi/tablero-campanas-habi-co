@@ -137,10 +137,6 @@ base_spend AS (
   GROUP BY 1,2,3,4,5,6
 )
 
--- ── Normalización del nombre de campaña a forma canónica: quita sufijos
--- comunes de versionado (-new, new, -v2, -test) para que variantes de la
--- misma campaña conceptual (ej. xxx-nal y xxx-nalnew) se agrupen como una.
-
 -- ── Filas de funnel (una por día × fuente × plataforma × campaña)
 SELECT
   'F' AS tipo,
@@ -148,7 +144,7 @@ SELECT
   CAST(fuente_id AS INT64)   AS fuente_id,
   mkt_platform               AS plataforma,
   ch_big, ch_medium, ch_small,
-  REGEXP_REPLACE(campana_mercadeo, r'(?i)(-new|new|-v\d+|-test)$', '') AS campana,
+  campana_mercadeo           AS campana,
   CAST(creados     AS INT64) AS creados,
   CAST(calificados AS INT64) AS calificados,
   CAST(asignados   AS INT64) AS asignados,
@@ -169,7 +165,7 @@ SELECT
   CAST(NULL AS INT64)            AS fuente_id,
   mkt_platform                   AS plataforma,
   ch_big, ch_medium, ch_small,
-  REGEXP_REPLACE(campana_mercadeo, r'(?i)(-new|new|-v\d+|-test)$', '') AS campana,
+  campana_mercadeo               AS campana,
   0 AS creados, 0 AS calificados, 0 AS asignados, 0 AS citas, 0 AS cierres,
   CAST(spend          AS FLOAT64) AS spend,
   CAST(clicks_link    AS INT64)   AS clicks_link,
