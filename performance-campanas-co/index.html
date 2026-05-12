@@ -277,7 +277,7 @@
 </div>
 
 <div class="footer-info">
-  Filtro de Fuente: matchea el sufijo del nombre de la campaña (<code>lfr</code>/<code>leadform</code> → Lead Forms · <code>hmt</code> → Estudio · <code>web</code> → WEB). Aplica solo al funnel — el spend NO se filtra por fuente porque una sola campaña paid (ej. Google) genera leads de varias fuentes simultáneamente y el spend está reportado a un solo nombre. Los CP* representan "costo de la plataforma ÷ leads del filtro".
+  Filtro de Fuente: matchea el sufijo del nombre de la campaña (<code>lfr</code>/<code>leadform</code> → Lead Forms · <code>hmt</code> → Estudio · <code>web</code> → WEB). Aplica al funnel directamente; al spend se le aplica una <b>atribución proporcional</b> (spend × share de leads de la fuente dentro de la plataforma). Razón: campañas Google y Facebook generan leads de varias fuentes simultáneamente y la tabla de inversiones no las separa.
 </div>
 
 <script>
@@ -456,16 +456,36 @@
       const b = ensure(k.k, k.meta);
       b.creados += r.cr; b.calif += r.cl; b.asg += r.as; b.cita += r.ct; b.cierre += r.ci;
     });
-    // Spend: NO filtra por fuente. Razón: una sola campaña paid (ej. Google)
-    // genera leads de varias fuentes (WEB + Estudio), pero el spend está
-    // reportado a un solo nombre de campaña. Filtrarlo por sufijo dejaría
-    // CPLs en 0. Mejor mostrar spend total de la plataforma y dejar que el
-    // usuario interprete CPL como costo compartido con otras fuentes.
+
+    // Atribución proporcional del spend: si hay filtro de fuente, multiplicar
+    // spend/imp/clicks por el share de leads de esa fuente dentro de la
+    // plataforma. Razón: el spend de una sola campaña paid puede generar
+    // leads de varias fuentes (WEB y Estudio comparten campañas Google),
+    // pero la tabla de inversiones no separa. Aproximamos.
+    let attrFn = () => 1;  // sin filtro = sin ajuste
+    if (state.src !== 'ALL') {
+      const totByPlat = {}, filtByPlat = {};
+      DATA_F.forEach(r => {
+        if (!passDate(r.d) || !passPlat(r.p) || !passSearch(r.c)) return;
+        const p = platOf(r.p);
+        totByPlat[p] = (totByPlat[p] || 0) + r.cr;
+        if (matchSrc(r.c, state.src)) filtByPlat[p] = (filtByPlat[p] || 0) + r.cr;
+      });
+      attrFn = (p) => {
+        const plat = platOf(p);
+        const tot = totByPlat[plat] || 0;
+        return tot > 0 ? (filtByPlat[plat] || 0) / tot : 0;
+      };
+    }
+
     DATA_S.forEach(r => {
       if (!passDate(r.d) || !passPlat(r.p) || !passSearch(r.c)) return;
+      const share = attrFn(r.p);
+      if (share === 0) return;
       const k = keyFn(r);
       const b = ensure(k.k, k.meta);
-      b.imp += r.im; b.clk += r.cl_l; b.clk_t += r.cl_t; b.spend += r.sp;
+      b.imp += r.im * share; b.clk += r.cl_l * share;
+      b.clk_t += r.cl_t * share; b.spend += r.sp * share;
     });
     return Array.from(buckets.values());
   }
