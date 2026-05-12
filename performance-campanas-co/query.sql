@@ -14,9 +14,12 @@
 -- =====================================================================
 
 WITH utm_map AS (
+  -- Normalización defensiva: el UTM dict (Google Sheet) a veces tiene
+  -- guiones/espacios colgantes al final del nombre. La tabla de spend
+  -- normalmente NO los tiene. Quitamos ambos para que el JOIN matchee.
   SELECT
-    LOWER(TRIM(campana_mercadeo_original)) AS key_campaign_leads,
-    LOWER(TRIM(mkt_campaign_name))         AS key_campaign_spend,
+    REGEXP_REPLACE(LOWER(TRIM(campana_mercadeo_original)), r'[-_\s]+$', '') AS key_campaign_leads,
+    REGEXP_REPLACE(LOWER(TRIM(mkt_campaign_name)),         r'[-_\s]+$', '') AS key_campaign_spend,
     mkt_channel_big,
     mkt_channel_medium,
     mkt_channel_small,
@@ -24,8 +27,8 @@ WITH utm_map AS (
     mkt_platform
   FROM `sellers-main-prod.bi_co.registro_unico_utm_mkt_colombia`
   QUALIFY ROW_NUMBER() OVER (
-    PARTITION BY LOWER(TRIM(campana_mercadeo_original)),
-                 LOWER(TRIM(mkt_campaign_name))
+    PARTITION BY REGEXP_REPLACE(LOWER(TRIM(campana_mercadeo_original)), r'[-_\s]+$', ''),
+                 REGEXP_REPLACE(LOWER(TRIM(mkt_campaign_name)),         r'[-_\s]+$', '')
     ORDER BY mkt_campaign_name
   ) = 1
 ),
@@ -58,7 +61,7 @@ base_leads AS (
   LEFT JOIN `papyrus-master.sellers_data_mart.sellers_leads_asignados_marketing_wbr_mart` asi
     ON g.nid = asi.nid
   LEFT JOIN utm_map u
-    ON LOWER(TRIM(g.campana_mercadeo)) = u.key_campaign_leads
+    ON REGEXP_REPLACE(LOWER(TRIM(g.campana_mercadeo)), r'[-_\s]+$', '') = u.key_campaign_leads
   WHERE CAST(g.fecha_creacion AS DATE) >= DATE '2024-01-01'
     AND CAST(g.fecha_creacion AS DATE) <  CURRENT_DATE()
     AND g.fuente_id IN (3, 7, 47)
@@ -128,7 +131,7 @@ base_spend AS (
     SUM(i.impressions)    AS impressions
   FROM `papyrus-data.habi_wh_bi.resumen_inversiones_mkt_co` i
   LEFT JOIN utm_map u
-    ON LOWER(TRIM(i.campana_original)) = u.key_campaign_spend
+    ON REGEXP_REPLACE(LOWER(TRIM(i.campana_original)), r'[-_\s]+$', '') = u.key_campaign_spend
   WHERE CAST(i.date AS DATE) >= DATE '2024-01-01'
     AND CAST(i.date AS DATE) <  CURRENT_DATE()
   GROUP BY 1,2,3,4,5,6
